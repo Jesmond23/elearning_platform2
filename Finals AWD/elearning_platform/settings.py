@@ -108,7 +108,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
+WHITENOISE_MANIFEST_STRICT = False
 
 # WHITENOISE_MANIFEST_STRICT = False
 # --- Media (Cloudinary in prod, filesystem in dev) ---
