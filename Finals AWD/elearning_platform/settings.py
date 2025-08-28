@@ -84,6 +84,13 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+# In production, serve JSON only (no browsable API / DRF static)
+if not DEBUG:
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
+        "rest_framework.renderers.JSONRenderer",
+    ]
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "eLearning Platform API",
     "DESCRIPTION": "Auto-generated API docs for the eLearning coursework.",
@@ -102,6 +109,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else 
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+
+# WHITENOISE_MANIFEST_STRICT = False
 # --- Media (Cloudinary in prod, filesystem in dev) ---
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
