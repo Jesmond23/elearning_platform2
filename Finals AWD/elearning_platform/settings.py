@@ -115,40 +115,33 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # WHITENOISE_MANIFEST_STRICT = False
 # --- Media (Cloudinary in prod, filesystem in dev) ---
 # --- Media (Cloudinary in prod, filesystem in dev) ---
+# --- Static base settings ---
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+
+# ✅ Use plain WhiteNoise storage (no manifest, no compression) to avoid DRF asset issues
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
+
+# And in your STORAGES blocks, use the same backend:
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
 if USE_CLOUDINARY:
     STORAGES = {
         "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
-        "staticfiles": {
-            # ✅ non-manifest to avoid DRF missing-file errors
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
-        },
+        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
     }
     MEDIA_URL = "/media/"
-    CLOUDINARY_STORAGE = {
-        "RAW_UPLOAD": True,
-    }
+    CLOUDINARY_STORAGE = {"RAW_UPLOAD": True}
 else:
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {
-            # ✅ non-manifest to avoid DRF missing-file errors
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
-        },
+        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
     }
 
-# --- Static base settings (keep these too) ---
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
-
-# ✅ compatibility + ensure non-manifest everywhere
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-
-# (optional) be extra lenient
+# Optional leniency (harmless to keep)
 WHITENOISE_MANIFEST_STRICT = False
 
 
