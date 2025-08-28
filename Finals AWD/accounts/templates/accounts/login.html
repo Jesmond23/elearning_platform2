@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login to eLearn</h2>
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            
+            <!--Username-->
+            <div>
+                <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" name="username" id="id_username" required
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+
+            </div>
+
+            <!--Password-->
+            <div>
+                <label for="id_password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" name="password" id="id_password" required
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"/>
+            </div>
+
+            <!--Submit-->
+            <div>
+                <button type="submit"
+                class="w-full bg-green-600 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded-md transition">
+            Login</button>
+            </div>
+        </form>
+         <!-- Register link -->
+    <p class="mt-6 text-center text-sm text-gray-600">
+      Don’t have an account?
+      <a href="{% url 'register' %}" class="text-blue-600 hover:underline font-medium">Register here</a>
+    </p>
+    
+   <p class="text-center mt-2 text-sm text-gray-600">
+  <a href="{% url 'password_reset' %}" class="text-blue-600 hover:underline">Forgot your password?</a>
+</p>
+
+
+    </div>
+</div>
+
+                 
+{% endblock %}

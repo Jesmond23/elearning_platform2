@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profile Page{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mt-10 bg-white p-6 rounded-lg shadow">
+       <div class="flex items-center gap-5 mb-6">
+  {% if user_profile.profile_picture %}
+    <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" width="100" class="w-16 h-16 rounded-full object-cover border">
+  {% else %}
+    <img src="{% static 'default-avatar.png' %}" alt="Default Avatar" class="w-16 h-16 rounded-full object-cover border">
+  {% endif %}
+
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800">
+      {% if user_profile.first_name or user_profile.last_name %}
+        {{ user_profile.first_name }} {{ user_profile.last_name }}
+      {% else %}
+        {{ user_profile.username }}
+      {% endif %}
+    </h2>
+
+    <p class="text-lg text-gray-500">
+      @{{ user_profile.username }}
+    </p>
+
+    <p class="text-lg text-gray-500">
+      {% if user_profile.is_teacher %}Teacher{% elif user_profile.is_student %}Student{% endif %}
+    </p>
+  </div>
+</div>
+
+        {% if request.user.id == user_profile.id %}
+  <a href="{% url 'edit_profile' %}" class="inline-block text-md mt-4 mb-4 px-3 py-2 text-white border border-blue-500 bg-blue-500 hover:bg-blue-700 rounded-xl">
+    Edit Profile
+  </a>
+{% endif %}
+
+       <div>
+    <h3 class="text-xl font-semibold text-gray-800 mb-4 mt-6">
+      {% if user_profile.is_teacher %}
+        Courses You're Teaching
+      {% elif user_profile.is_student %}
+        Courses You're Enrolled In
+      {% endif %}
+    </h3>
+
+    <div class="space-y-4">
+      {% for course in related_courses %}
+        <div class="bg-gray-50 rounded shadow p-4 flex items-center gap-4 hover:bg-gray-100">
+          {% if course.course_image %}
+            <img src="{{ course.course_image.url }}" alt="{{ course.title }}" class="w-16 h-16 object-cover rounded">
+          {% else %}
+            <img src="{% static 'default-course.png' %}" alt="Default Course" class="w-16 h-16 object-cover rounded">
+          {% endif %}
+          <div>
+            <h4 class="text-lg font-semibold text-gray-700">{{ course.title }}</h4>
+            <a href="{% url 'course_detail' course.id %}" class="text-md text-blue-600 hover:underline">View Course</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-gray-500">No courses found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  </div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}All Notifications{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 px-4">
+  <h2 class="text-2xl font-semibold text-gray-800 mb-6">All Notifications</h2>
+
+  <ul class="space-y-3">
+    {% for note in notifications %}
+      <li class="bg-white shadow rounded p-4 hover:shadow-xl hover:bg-blue-50">
+     
+{% if note.course %}
+  {% if note.notification_type == 'assignment_submission' or note.notification_type == 'material_upload' %}
+    <a href="{% url 'course_detail' note.course.id %}" class="text-gray-700 hover:underline hover:text-blue-800">
+      {{ note.message }}
+    </a>
+  {% elif note.notification_type == 'chat' %}
+    <a href="{% url 'private_chat' note.sender.id %}" class="text-gray-700 hover:underline hover:text-blue-800">
+      <strong>{{ note.sender.username }}</strong>: {{ note.message }}
+    </a>
+
+    {% elif note.notification_type == 'enrolment' %}
+  <a href="{% url 'course_detail' note.course.id %}" class="text-gray-700 hover:underline hover:text-blue-800 ">
+    {{ note.message }}
+  </a>
+  {% else %}
+    <span class="text-gray-800">{{ note.message }}</span>
+  {% endif %}
+{% elif note.notification_type == 'chat' %}
+  <a href="{% url 'private_chat' note.sender.id %}" class="text-gray-700 hover:underline hover:text-blue-800">
+    <strong>{{ note.sender.username }}</strong>: {{ note.message }}
+  </a>
+  {% elif note.notification_type == 'status_post' or note.notification_type == 'status_comment' %}
+    <a href="{% url 'dashboard' %}" class="text-gray-700 hover:underline hover:text-blue-800">
+      {{ note.message }}
+    </a>
+  {% else %}
+    <span class="text-gray-800">{{ note.message }}</span>
+  {% endif %}
+
+
+        <br>
+        <small class="text-gray-500">{{ note.created_at|date:"M d, H:i" }}</small>
+      </li>
+    {% empty %}
+      <li class="text-gray-500 text-center mt-10">You have no notifications.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

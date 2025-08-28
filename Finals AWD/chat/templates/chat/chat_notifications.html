@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Private chat notifications{% endblock %}
+
+{% block content %}
+<h2>Private chat notifications</h2>
+<ul class="list-group">
+    {% for note in notifications %}
+    <li class="list-group-item">
+        <strong>{{note.sender.username}}</strong>:{{note.message}}
+        <br>
+        <small class="text-muted">{{note.timestamp}}</small>
+    </li>
+    {% empty %}
+    <li class= 'list-group-item text-muted'>You have no private chat notifications</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<div class="w-full ">
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+  
+ <div class="inline-block bg-white bg-opacity-90 px-6 py-3 rounded shadow mb-6">
+  <h2 class="text-2xl font-bold text-gray-800">Browse Available Courses</h2>
+</div>
+
+  {% if courses %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+{% for course in courses %}
+  <div class="bg-slate-100 hover:shadow-xl transition-shadow duration-300 shadow-md rounded-lg p-4 flex flex-col justify-between min-h-[450px]">
+    
+    <!-- Image -->
+    {% if course.image %}
+    <img src="{{ course.image.url }}" alt="{{ course.title }}" class="object-cover rounded border w-full h-[200px]" />
+    {% else %}
+    <div class="bg-gray-200 flex items-center justify-center text-gray-400 text-sm rounded border w-full h-[200px]">
+      No Image
+    </div>
+    {% endif %}
+
+    <!-- Title + Description -->
+    <div class="mt-4">
+      <h3 class="text-xl font-semibold text-gray-800">{{ course.title }}</h3>
+      <p class="text-md text-gray-600 mt-1">{{ course.description|truncatewords:25 }}</p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-2 mt-auto pt-4">
+     <a href="{% url 'course_detail' course.id %}"
+   class="text-md text-white text-center rounded border transition w-full py-2 bg-yellow-500 border-yellow-500 hover:bg-yellow-600">
+   View
+</a>
+
+      {% if course.id in enrolled_ids %}
+   <a href="{% url 'drop_course' course.id %}"
+   class="text-md text-white text-center rounded border transition w-full py-2 bg-red-400 hover:bg-red-500 border-red-400 hover:border-red-500">
+   Drop
+</a>
+      {% else %}
+    <a href="{% url 'enroll_course' course.id %}"
+   class="text-md text-white text-center rounded border transition w-full py-2 bg-blue-400 hover:bg-blue-500 border-blue-400 hover:border-blue-500">
+   Enroll
+</a>
+      {% endif %}
+    </div>
+
+  </div>
+{% endfor %}
+
+  </div>
+  {% else %}
+  <p class="text-gray-500">No courses available.</p>
+  {% endif %}
+</div>
+
+</div>
+<script>
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted || (performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+      window.location.reload();
+    }
+  });
+</script>
+
+
+{% endblock %}
+
+

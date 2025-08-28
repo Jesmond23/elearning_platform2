@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+    <h1 class="text-4xl font-bold text-gray-700 mb-4">Welcome to LearningVine Platform</h1>
+    <p class="text-lg text-gray-600 mb-6">A modern platform for teachers and students</p>
+    <div class="space-x-4">
+        <a href="{% url 'login' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Login</a>
+        <a href="{% url 'register' %}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">Register</a>
+        
+    </div>
+    <a href="{% url 'password_reset' %}" class="text-sm text-blue-600 hover:underline mt-5">Forgot your password?</a>
+</div>
+
+{% endblock %}

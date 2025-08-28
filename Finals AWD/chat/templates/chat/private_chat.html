@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Chatting with {{other_user.username}}{% endblock %}
+{% block background_image %}{% static 'chatbg.png' %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-6 px-4">
+  <h2 class="text-xl font-semibold text-gray-800 mb-4">Chatting with {{ other_user.username }}</h2>
+
+  <div id="chat-log" class="h-80 overflow-y-auto bg-gray-50 border border-gray-200 p-4 rounded space-y-3 mb-4"></div>
+
+  <form id="chat-form" class="flex gap-2">
+    {% csrf_token %}
+    <input id="chat-message-input" type="text" 
+           class="flex-1 border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+           placeholder="Type your message" autofocus>
+    <button type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition">
+      Send
+    </button>
+  </form>
+</div>
+
+<script>
+  const otherUserId = "{{ other_user.id }}";
+  const userName = "{{ request.user.username }}";
+  const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/private/' + otherUserId + '/');
+
+  let lastSender = null;
+
+  chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const chatLog = document.querySelector('#chat-log');
+    const messageEl = document.createElement('div');
+
+    const isOwnMessage = data.sender === userName;
+    const isNewSender = data.sender !== lastSender;
+    lastSender = data.sender;
+
+
+    const defaultProfilePic = "{% static 'default-avatar.png' %}";
+const profilePic = data.profile_pic || defaultProfilePic;
+    // const profilePic = data.profile_pic || '{% static "default-avatar.png" %}';
+
+    messageEl.innerHTML = `
+      <div class="flex ${isOwnMessage ? 'flex-row-reverse' : ''} items-start gap-2">
+        ${isNewSender ? `<img src="${profilePic}" class="w-8 h-8 rounded-full">` : `<div class="w-8"></div>`}
+
+        <div class="max-w-xs px-3 py-2 rounded-lg ${isOwnMessage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}">
+          ${isNewSender ? `<div class="font-semibold">${data.sender} <span class="text-xs text-gray-300 ml-1">[${data.timestamp}]</span></div>` : `<div class="text-xs text-gray-400 mb-1">[${data.timestamp}]</div>`}
+          <div>${data.message}</div>
+        </div>
+      </div>
+    `;
+
+    chatLog.appendChild(messageEl);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  };
+
+  document.querySelector('#chat-form').onsubmit = function (e) {
+    e.preventDefault();
+    const input = document.querySelector('#chat-message-input');
+    const message = input.value.trim();
+
+    if (message) {
+      chatSocket.send(JSON.stringify({ message }));
+      input.value = '';
+    }
+  };
+</script>
+{% endblock %}

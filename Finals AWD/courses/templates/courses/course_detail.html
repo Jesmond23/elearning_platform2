@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+{% load star_filters %}
+{% block title %}Course: {{course.title}}{% endblock %}
+
+{% block content %}
+{% if messages %}
+  <div class="space-y-2 mb-4">
+    {% for message in messages %}
+      <div class="px-4 py-2 rounded text-sm {% if message.tags == 'warning' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+<div class=" w-full">
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-10">
+
+  <!-- Course Title -->
+ <div class="flex items-start gap-4 mb-6 bg-white p-6 rounded-xl shadow-2xl border border-gray-200">
+  {% if course.course_image %}
+    <img src="{{ course.course_image.url }}" alt="{{ course.title }}" class="w-32 h-32 object-cover rounded shadow">
+  {% else %}
+    <img src="{% static 'default-course.png' %}" alt="No Image" class="w-32 h-32 object-cover rounded shadow">
+  {% endif %}
+
+  <div class="pt-1">
+    <h1 class="text-2xl font-bold text-gray-900">{{ course.title }}</h1>
+    <p class="text-gray-800 text-base mt-1">{{ course.description }}</p>
+  </div>
+</div>
+
+
+<!--Separate into two columns-->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+ <div class="lg:col-span-3 space-y-6">
+    
+
+  <!-- Teacher Info -->
+  <div class="bg-cyan-50 p-6 rounded-xl shadow-xl">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Teacher</h2>
+   <div class="flex items-center justify-between">
+      <a href="{% url 'public_profile' teacher.id course.id %}" class="flex items-center gap-3 text-gray-800">
+        {% if teacher.profile_picture %}
+        <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.username }}" class="w-12 h-12 rounded-full object-cover" />
+        {% else %}
+        <img src="{% static 'default-avatar.png' %}" alt="Default Avatar" class="w-12 h-12 rounded-full object-cover" />
+        {% endif %}
+        <span class="font-medium">{{ teacher.username }}</span>
+      </a>
+{% if user != teacher %}
+  {% if user.is_teacher or is_enrolled_user %}
+    <a href="{% url 'private_chat' teacher.id %}" class="text-sm text-blue-700 hover:underline">Chat</a>
+  {% else %}
+    <span class="text-sm text-gray-300 cursor-not-allowed" title="Join the course to chat">Chat</span>
+  {% endif %}
+{% endif %}
+
+    </div>
+  </div>
+
+ <!-- Enrolled Students -->
+<div class="bg-cyan-50 p-6 rounded-xl shadow-xl">
+  <h2 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Students</h2>
+
+  <div class="space-y-4 max-h-[22rem] overflow-y-auto pr-2">
+    <ul class="space-y-4">
+      {% for enrollment in students %}
+      <li class="flex justify-between items-center border-b pb-3">
+        <!-- Profile + Username -->
+        <a href="{% url 'public_profile' enrollment.student.id course.id %}" class="flex items-center gap-3 text-gray-800">
+          <img
+            src="{% if enrollment.student.profile_picture %}{{ enrollment.student.profile_picture.url }}{% else %}/static/default-avatar.png{% endif %}"
+            alt="{{ enrollment.student.username }}'s profile picture"
+            class="w-10 h-10 rounded-full object-cover"
+          />
+          <span>{{ enrollment.student.username }}</span>
+        </a>
+        <div class="flex items-center gap-2">
+          {% if enrollment.student != user %}
+            {% if user.is_teacher or is_enrolled_user %}
+              <a href="{% url 'private_chat' enrollment.student.id %}" class="text-sm text-blue-600 hover:underline">Chat</a>
+            {% else %}
+              <span class="text-sm text-gray-400 cursor-not-allowed" title="Join the course to chat">Chat</span>
+            {% endif %}
+          {% endif %}
+
+          {% if user == course.teacher %}
+          <form method="post" action="{% url 'suspend_student' course.id enrollment.student.id %}" onsubmit="return confirm('Suspend {{ enrollment.student.username }}?');">
+            {% csrf_token %}
+            <button type="submit" class="text-sm text-red-600 hover:underline">Suspend</button>
+          </form>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+ <!-- Course Chat Box -->
+<div class="bg-blue-50 rounded-lg shadow-xl p-6 mb-8">
+{% if enrolled or user == course.teacher %}
+  {% include 'chat/chat_room.html' with course=course %}
+  <a href="{% url 'course_chat' course.id %}" class="text-sm text-blue-600 hover:underline mt-4 inline-block">Open Course Chat</a>
+  {% else %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
+      <strong>Notice:</strong> You must be enrolled in this course to participate in the chat.
+    </div>
+    {% endif %}
+</div>
+
+
+<!--Bottom-->
+  <!-- Reviews -->
+<div class="flex flex-col lg:flex-row gap-6 w-full ">
+  
+  <!-- Leave a Review -->
+  {% if enrolled and form %}
+  <div class="flex-1 bg-orange-50 p-6 rounded-xl shadow-2xl min-h-80 max-h-[28rem]">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Leave a Review</h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.errors %}
+      <div class="text-red-500 text-sm">
+        {{ form.errors }}
+      </div>
+      {% endif %}
+
+      <!-- Rating -->
+      <div>
+        <label for="{{ form.rating.id_for_label }}" class="block text-gray-700 font-medium mb-1">Rating (1–5★)</label>
+        {{ form.rating.errors }}
+        {{ form.rating|add_class:"w-24 border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-blue-500 focus:ring-2" }}
+      </div>
+
+      <!-- Comment -->
+      <div>
+        <label for="{{ form.comment.id_for_label }}" class="block text-gray-700 font-medium mb-1">Comment:</label>
+        {{ form.comment.errors }}
+        {{ form.comment|add_class:"w-full border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-blue-500 focus:ring-2 resize-none" }}
+      </div>
+
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit Review</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Reviews List (wider than form) -->
+  <div class="flex-[1.5] bg-orange-50 p-6 rounded-xl shadow-2xl min-h-80 max-h-[28rem] ">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Reviews</h2>
+    <div class="space-y-4 max-h-[17rem] overflow-y-auto pr-2">
+      {% for review in reviews %}
+      <div class="bg-orange-100 p-4 border-l-4 border-b-4 border-gray-200 shadow-lg rounded-xl space-y-2">
+        <strong class="text-gray-800">{{ review.student.username }}</strong>
+        <div class="text-yellow-500 text-sm">
+          {% for _ in review.rating|star_range %}★{% endfor %}
+        </div>
+        <p class="text-gray-700 text-sm break-words whitespace-pre-wrap max-w-full overflow-wrap break-all">{{ review.comment }}</p>
+        <small class="text-gray-400 text-xs">{{ review.created_at|date:"M d, Y H:i" }}</small>
+      </div>
+      {% empty %}
+      <p class="text-gray-500">No reviews yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  <!--Right Column-->
+<aside class="space-y-6 lg:col-span-1">
+     <!-- Materials -->
+ <!-- Materials -->
+<div class="bg-slate-100 border-l-4 border-b-4 border-blue-300 p-6 shadow-md rounded-xl">
+  <h2 class="text-xl font-semibold text-gray-700 mb-4">Materials</h2>
+
+  <!-- Upload Form for Teachers -->
+  {% if user == course.teacher %}
+  <form method="post" enctype="multipart/form-data" action="{% url 'upload_material' course.id %}" class="space-y-4 mb-6">
+    {% csrf_token %}
+    <div>
+      <label class="block text-gray-700 font-medium">Title</label>
+      <input type="text" name="title" class="w-full border border-gray-300 rounded px-3 py-2" required>
+    </div>
+    <div>
+      <label class="block text-gray-700 font-medium">File</label>
+      <input type="file" name="file" class="w-full border border-gray-300 rounded px-3 py-2" required>
+    </div>
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Upload</button>
+  </form>
+  {% endif %}
+
+  <!-- Display Materials -->
+ <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+    {% for mat in materials %}
+    <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-md shadow-sm">
+      {% with mat.file.name|lower as filename %}
+      {% if ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}
+        <img src="{{ mat.file.url }}" alt="{{ mat.title }}" class="w-16 h-16 object-cover rounded border" />
+        {% elif ".pdf" in filename %}
+        <span class="text-red-600 text-2xl">📄</span>
+        {% elif ".zip" in filename or ".rar" in filename %}
+        <span class="text-yellow-600 text-2xl">📁</span>
+        {% elif ".mp4" in filename or ".mov" in filename or ".avi" in filename %}
+        <span class="text-purple-600 text-2xl">🎞️</span>
+      {% elif ".doc" in filename or ".docx" in filename %}
+        <span class="text-blue-600 text-2xl">📝</span>
+      {% else %}
+        <span class="text-gray-500 text-2xl">📁</span>
+      {% endif %}
+    {% endwith %}
+      <div>
+        <p class="font-medium text-gray-800">{{ mat.title }}</p>
+        <a href="{{ mat.file.url }}" target="_blank" class="text-sm text-blue-600 hover:underline">Download</a>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-500">No materials uploaded yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+   <!-- Submissions (Student View) -->
+  {% if user.is_student and enrolled %}
+  <div class="bg-slate-50 border-l-4 border-b-4 border-blue-300 p-6 rounded shadow">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Your Submissions</h2>
+    <a href="{% url 'submit_assignment' course.id %}" class="text-sm text-green-600 hover:underline mb-3 inline-block">Submit New Assignment</a>
+    {% if submissions %}
+   <ul class="space-y-3 max-h-64 overflow-y-auto pr-2">
+      {% for sub in submissions %}
+     <li class="bg-gray-50 p-3 rounded">
+      {% with sub.file.name|lower as filename %}
+      <span class="text-sm text-gray-500 mr-5">
+          {% if ".zip" in filename %}📦 ZIP
+            {% elif ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}🖼️ Image
+            {% elif ".mp4" in filename or ".mov" in filename or ".avi" in filename %}🎞️ Video
+            {% elif ".pdf" in filename %}📄 PDF
+            {% elif ".doc" in filename or ".docx" in filename %}📝 DOC
+            {% else %}📁 File
+            {% endif %}
+      </span>
+      {% endwith %}
+      <a href="{{ sub.file.url }}" class="text-blue-500 hover:underline">Download</a> — {{ sub.comment }}
+      <br>
+      <small class="text-gray-400">Submitted on {{ sub.submitted_at|date:"M d, Y H:i" }}</small>
+     </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-gray-500">You have not submitted your assignment yet.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+ <!-- Submissions (Teacher View) -->
+{% if user.is_teacher %}
+<div class="bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-semibold text-gray-700 mb-4">All Submissions</h2>
+
+  {% if submissions %}
+  <div id="submission-wrapper" class="space-y-3 max-h-[28rem] overflow-y-auto pr-2 transition-all duration-300">
+    {% for sub in submissions %}
+    <div class="bg-gray-50 p-3 rounded">
+      <strong class="text-gray-800">{{ sub.student.username }}</strong> —
+      {% with sub.file.name|lower as filename %}
+      <span class="text-sm text-gray-500 mr-2">
+        {% if ".zip" in filename %}📦 ZIP
+        {% elif ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}🖼️ Image
+        {% elif ".mp4" in filename or ".mov" in filename or ".avi" in filename %}🎞️ Video
+        {% elif ".pdf" in filename %}📄 PDF
+        {% elif ".doc" in filename or ".docx" in filename %}📝 DOC
+        {% else %}📁 File
+        {% endif %}
+      </span>
+      {% endwith %}
+      <a href="{{ sub.file.url }}" target="_blank" class="text-blue-600 hover:underline">Download</a>
+      <p class="text-gray-700">{{ sub.comment }}</p>
+      <small class="text-gray-400">{{ sub.submitted_at|date:"M d, H:i" }}</small>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Show more button (optional) -->
+  <div class="flex justify-center mt-4">
+    <button id="toggle-submissions" class="text-sm text-blue-600 hover:underline">Show more</button>
+  </div>
+
+  <script>
+    const toggleBtn = document.getElementById("toggle-submissions");
+    const wrapper = document.getElementById("submission-wrapper");
+    let expanded = false;
+
+    toggleBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      wrapper.style.maxHeight = expanded ? "1000px" : "24rem";  // 24rem = 384px
+      toggleBtn.textContent = expanded ? "Show less" : "Show more";
+    });
+  </script>
+
+  {% else %}
+  <p class="text-gray-500">No submissions yet.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+
+  </aside>
+
+
+
+
+</div>
+{% endblock %}

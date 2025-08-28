@@ -1,0 +1,149 @@
+{% load notification_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}eLearning Platform{% endblock %}</title>
+    <!-- <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> -->
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/alpinejs" defer></script>
+  </head>
+<body class="bg-cover bg-center min-h-screen" 
+      style="background-image: url('{% block background_image %}{% static "bg.png" %}{% endblock %}');">
+
+
+
+<nav class="bg-gray-800 text-white">
+  <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+    <!-- Left -->
+ <div class="flex items-center space-x-3">
+  <a href="{% url 'dashboard' %}" class="flex items-center">
+    <img src="{% static 'LearningVine.png' %}" alt="LearningVine Logo"
+         class="h-20 w-auto bg-white rounded px-2 py-2 shadow" />
+    <span class="ml-3 text-xl font-bold text-white hidden sm:inline">LearningVine</span>
+  </a>
+</div>
+      <!-- Center: Search -->
+      <div class="flex-grow flex justify-center">
+        <form action="{% url 'search' %}" method="get" class="flex items-center gap-2 w-full max-w-lg">
+          <input type="text" name="q" placeholder="Search students, teachers, courses.." 
+                 class="flex-grow px-3 py-1 rounded border text-gray-800 text-md focus:outline-none focus:ring focus:ring-blue-400" required>
+          <button type="submit" class="text-md bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">Search</button>
+        </form>
+      </div>
+
+
+      <!-- Right: Navigation Items -->
+      <div class="flex items-center gap-4 text-md">
+        {% if user.is_authenticated %}
+          <span>Hi {{ user.username }}</span>
+
+  <span class="w-11 h-11 rounded-full bg-white ring-2 ring-white overflow-hidden shrink-0 inline-flex">
+  {% if user.profile_picture %}
+    <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+         class="w-full h-full object-cover" />
+  {% else %}
+    <img src="{% static 'default-avatar.png' %}" alt="Default Avatar"
+         class="w-full h-full object-contain" />
+  {% endif %}
+</span>
+
+
+          <a href="{% url 'dashboard' %}" class="hover:underline">Dashboard</a>
+
+          <a href="{% url 'profile' %}" class="hover:underline">Profile</a>
+
+          {% if user.is_teacher %}
+  <a href="{% url 'browse_courses' %}" class="hover:underline">Browse All Modules</a>
+{% elif user.is_student %}
+  <a href="{% url 'course_list' %}" class="hover:underline">Browse All Modules</a>
+{% endif %}
+
+          <!-- Notifications -->
+          <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="relative inline-flex items-center hover:underline">
+            <span class="relative">
+      Notifications
+      {% if total_unread_notifications > 0 %}
+  <span class="absolute -top-2 -right-3 min-w-[18px] h-5 text-xs font-bold text-white rounded-full text-center leading-5 z-50"
+      style="background-color: #dc2626;">
+  {{ total_unread_notifications }}
+</span>
+      {% endif %}
+    </span>
+            </button>
+
+            <!-- Dropdown -->
+            <div x-show="open" @click.away="open = false" x-transition
+                 class="absolute right-0 mt-2 w-72 bg-white text-black shadow-lg rounded-lg z-50 p-2 border text-sm">
+              {% for note in merged_notifications %}
+              <div class="border-b py-2">
+                {% if note.notification_type == 'chat' %}
+                  <a href="{% url 'private_chat' note.sender.id %}" class="text-blue-600 hover:underline">
+                    <strong>{{ note.sender.username }}</strong>: {{ note.message|truncatechars:40 }}
+                  </a>
+                {% else %}
+                  {{ note.message }}
+                {% endif %}
+                <br>
+                <small class="text-gray-500">{{ note.sort_time|date:"M d, H:i" }}</small>
+              </div>
+              {% empty %}
+              <div class="text-gray-500 p-2">No notifications</div>
+              {% endfor %}
+              <div class="text-center mt-2">
+                <a href="{% url 'all_notifications' %}" class="text-blue-600 hover:underline">View All</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logout -->
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="hover:underline">Logout</button>
+          </form>
+
+        {% else %}
+          <a href="{% url 'login' %}" class="hover:underline">Login</a>
+          <a href="{% url 'register' %}" class="hover:underline">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="font-sans">
+ {% if messages %}
+    <div class="max-w-2xl mx-auto mt-6">
+      {% for message in messages %}
+        <div class="p-4 mb-4 rounded 
+                    {% if message.tags == 'success' %}bg-green-100 border border-green-400 text-green-700
+                    {% elif message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700
+                    {% elif message.tags == 'warning' %}bg-yellow-100 border border-yellow-400 text-yellow-700
+                    {% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+    <footer class="text-center mt-5 mb-3 text-muted">
+        <small> &copy; 2025 eLearning Platform</small>
+    </footer>
+
+
+
+<!-- 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+
+  </body>
+</html>

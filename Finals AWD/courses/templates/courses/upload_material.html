@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Upload <File>{% endblock %}</File>
+{% block content %}
+
+<h2>Upload to {{course.title}}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button class="btn btn-primary" type="submit">Upload File</button>
+</form>
+
+{% endblock %}

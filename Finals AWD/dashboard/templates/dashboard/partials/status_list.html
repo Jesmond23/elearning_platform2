@@ -1,0 +1,39 @@
+{% load widget_tweaks %}
+
+{% for status in statuses %}
+<div class="border border-gray-200 p-4 rounded-lg">
+    <div class="mb-3 text-lg">
+        <strong class="text-gray-700">{{ status.user.username }}</strong>
+        <span class="text-gray-600">{{ status.content }}</span>
+    </div>
+    <small class="text-gray-500">{{ status.posted_on|date:"M d, H:i" }}</small>
+
+    <!--Comments Sect-->
+    <div class="mt-4 pl-4 border-l-2 border-gray-300">
+        <h5 class="text-md font-semibold mb-3 text-gray-700">Comments</h5>
+        <div class="space-y-2 mb-4">
+            {% for comment in status.comments.all %}
+            <div class="bg-gray-50 p-3 rounded-md max-w-full">
+                <div class="text-md">
+                    <strong class="text-gray-800">{{ comment.author.username }}</strong>
+                    <span class="text-gray-600 break-words">: {{ comment.content }}</span>
+                </div>
+                <small class="text-gray-400">{{ comment.posted_on|date:"M d, H:i" }}</small>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-md">No comments yet.</p>
+            {% endfor %}
+        </div>
+        <!-- Comment Form -->
+<form method="POST" class="mt-2">
+  {% csrf_token %}
+  <input type="hidden" name="status_id" value="{{ status.id }}">
+  {{ comment_form.content|add_class:"w-full border border-gray-300 p-2 rounded mb-2" }}
+  <button type="submit" name="comment_submit" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
+    Post Comment
+  </button>
+</form>
+    </div>
+</div>
+
+{% endfor %}

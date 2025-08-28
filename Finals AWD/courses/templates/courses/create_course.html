@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}Create Course {% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="max-w-xl mx-auto p-6 bg-white rounded shadow space-y-6">
+  {% csrf_token %}
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+    {{ form.title|add_class:"w-full p-2 border border-gray-300 rounded shadow-sm focus:ring focus:ring-indigo-200" }}
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+    {{ form.description|add_class:"w-full p-2 border border-gray-300 rounded shadow-sm focus:ring focus:ring-indigo-200" }}
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+    {{ form.image|add_class:"w-full p-2 border border-gray-300 rounded shadow-sm focus:ring focus:ring-indigo-200" }}
+  </div>
+<div id="image-preview" class="mt-4 hidden">
+  <p class="text-sm text-gray-600 mb-1">Image Preview:</p>
+  <img id="preview-img" src="#" alt="Preview" class="w-full max-w-sm rounded shadow" />
+</div>
+  <button type="submit" class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded shadow">
+    Create
+  </button>
+</form>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        //Grab elements from HTML
+
+        //Input type = file
+        const imageInput = document.getElementById("id_image");
+        //Hidden box that holds image preview
+        const previewDiv = document.getElementById("image-preview");
+        //Actual img tag that displays the chosen image
+        const previewImg = document.getElementById("preview-img");
+
+        //When user picks a file to upload
+        if(imageInput){
+            imageInput.addEventListener("change", function(){
+                //Select the first file
+                const file = this.files[0];
+                if(file){
+                    //Read the content of the file
+                    const reader = new FileReader();
+
+                    reader.onload = function(e){
+                        //Put the image in previewImg.src to update <img> to display it
+                       previewImg.src = e.target.result;
+                       //Remove hidden class so that image is visible
+                       previewDiv.classList.remove("hidden"); 
+                    }
+                    //Read the image as data URL
+                    reader.readAsDataURL(file);
+                }else{
+                    //Reset state if user clears the file
+                    previewDiv.classList.add("hidden");
+                    previewImg.src="#";
+                }
+            })
+        }
+    });
+</script>
+
+{% endblock %}

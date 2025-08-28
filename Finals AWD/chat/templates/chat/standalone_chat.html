@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Course Chat{% endblock %}
+{% block background_image %}{% static 'chatbg.png' %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+<div class="max-w-3xl mx-auto py-6 px-4 min-h-screen bg-[url('/static/chatbg.png')] bg-cover bg-center">
+
+    {% include 'chat/chat_room.html' with course=course %}
+  </div>
+</div>
+{% endblock %}

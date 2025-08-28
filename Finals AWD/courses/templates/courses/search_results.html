@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Search: {{query}}{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-7 bg-white mt-5">
+    <h2 class="text-2xl font-semibold text-gray-700">Results for "{{query}}"</h2>
+
+    <!--User result-->
+    <div>
+        <h3 class="text-lg font-bold text-gray-700 mb-2">Users</h3>
+        {% if users %}
+        <ul class="space-y-2">
+            {% for user in users %}
+            <li>
+                 <a href="{% url 'public_profile_simple' user.id %}" class="text-blue-500 hover:underline">
+            {{ user.get_full_name }} ({{ user.username }}) - {{ user.get_role_display }}
+        </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-400">No user found</p>
+        {% endif %}
+    </div>
+
+    <!--Course Results-->
+    <div>
+        <h3 class="text-lg font-bold text-gray-700 mb-2">Courses</h3>
+        {% if courses %}
+        <ul class="space-y-2">
+            {% for course in courses %}
+            <li>
+                <a href="{% url 'course_detail' course.id %}" class="text-blue-500 hover:underline">
+                    {{ course.title }} — by {{ course.teacher.username }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-400">No courses found</p>
+        {% endif %}
+    </div>
+
+
+</div>
+
+{% endblock %}
