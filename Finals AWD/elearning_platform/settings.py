@@ -101,18 +101,19 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
-# Static files
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+# # Static files
+# STATIC_URL = "/static/"
+# STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
-# Use non-manifest storage to avoid DRF’s missing font references breaking collectstatic
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# # Use non-manifest storage to avoid DRF’s missing font references breaking collectstatic
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-# (Keep this too; it’s harmless either way)
-WHITENOISE_MANIFEST_STRICT = False
+# # (Keep this too; it’s harmless either way)
+# WHITENOISE_MANIFEST_STRICT = False
 
 # WHITENOISE_MANIFEST_STRICT = False
+# --- Media (Cloudinary in prod, filesystem in dev) ---
 # --- Media (Cloudinary in prod, filesystem in dev) ---
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
@@ -120,12 +121,13 @@ if USE_CLOUDINARY:
     STORAGES = {
         "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            # ✅ non-manifest to avoid DRF missing-file errors
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
         },
     }
     MEDIA_URL = "/media/"
     CLOUDINARY_STORAGE = {
-        "RAW_UPLOAD": True,  # allow non-images if needed
+        "RAW_UPLOAD": True,
     }
 else:
     MEDIA_URL = "/media/"
@@ -133,9 +135,22 @@ else:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            # ✅ non-manifest to avoid DRF missing-file errors
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
         },
     }
+
+# --- Static base settings (keep these too) ---
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+
+# ✅ compatibility + ensure non-manifest everywhere
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+# (optional) be extra lenient
+WHITENOISE_MANIFEST_STRICT = False
+
 
 # --- Passwords ---
 AUTH_PASSWORD_VALIDATORS = [
