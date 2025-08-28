@@ -85,7 +85,6 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-# In production, serve JSON only (no browsable API / DRF static)
 if not DEBUG:
     REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
         "rest_framework.renderers.JSONRenderer",
@@ -116,12 +115,12 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Media (Cloudinary in prod, filesystem in dev) ---
 # --- Media (Cloudinary in prod, filesystem in dev) ---
 # --- Static base settings ---
+
+# --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
-
-# ✅ Use plain WhiteNoise storage (no manifest, no compression) to avoid DRF asset issues
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # And in your STORAGES blocks, use the same backend:
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
