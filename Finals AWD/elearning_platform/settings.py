@@ -101,13 +101,15 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
-
-# --- Static (Whitenoise) ---
+# Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use non-manifest storage to avoid DRF’s missing font references breaking collectstatic
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+# (Keep this too; it’s harmless either way)
 WHITENOISE_MANIFEST_STRICT = False
 
 # WHITENOISE_MANIFEST_STRICT = False
