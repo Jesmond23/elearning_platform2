@@ -2,9 +2,9 @@
   "name": "finals-awd",
   "version": "1.0.0",
   "main": "index.js",
- "scripts": {
-    "dev": "tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --watch",
-    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --minify"
+"scripts": {
+    "dev": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --watch",
+    "build:css": "tailwindcss -i ./src/input.css -o ./static/css/tailwind.css --minify"
   },
   "keywords": [],
   "author": "",
