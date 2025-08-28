@@ -120,7 +120,7 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
 # And in your STORAGES blocks, use the same backend:
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
