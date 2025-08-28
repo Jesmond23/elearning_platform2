@@ -2,10 +2,9 @@
   "name": "finals-awd",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+ "scripts": {
     "dev": "tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --watch",
-    "build": "tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --minify"
+    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --minify"
   },
   "keywords": [],
   "author": "",
