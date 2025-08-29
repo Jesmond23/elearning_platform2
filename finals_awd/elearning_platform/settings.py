@@ -1,5 +1,5 @@
 from pathlib import Path
-import os
+
 import dj_database_url  # pip install dj-database-url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,14 +119,23 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Static / WhiteNoise ---
 # --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Only add static dir if it exists and has files
+import os
 static_dir = BASE_DIR / "static"
-if static_dir.exists() and any(static_dir.iterdir()):
-    STATICFILES_DIRS = [static_dir]
+print(f"Static dir path: {static_dir}")
+print(f"Static dir exists: {static_dir.exists()}")
+if static_dir.exists():
+    try:
+        files = list(static_dir.rglob('*'))
+        print(f"Static dir contents: {files}")
+        STATICFILES_DIRS = [static_dir]
+    except Exception as e:
+        print(f"Error reading static dir: {e}")
+        STATICFILES_DIRS = []
 else:
     STATICFILES_DIRS = []
+
+# Only add static dir if it exists and has files
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
