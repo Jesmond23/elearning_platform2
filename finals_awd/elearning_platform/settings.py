@@ -120,26 +120,18 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Check if static directory exists and configure STATICFILES_DIRS
 static_dir = BASE_DIR / "static"
-print(f"Static dir path: {static_dir}")
-print(f"Static dir exists: {static_dir.exists()}")
 if static_dir.exists():
-    try:
-        files = list(static_dir.rglob('*'))
-        print(f"Static dir contents: {files}")
-        STATICFILES_DIRS = [static_dir]
-    except Exception as e:
-        print(f"Error reading static dir: {e}")
-        STATICFILES_DIRS = []
+    STATICFILES_DIRS = [static_dir]
 else:
     STATICFILES_DIRS = []
 
-# Only add static dir if it exists and has files
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# Legacy setting for backward compatibility with older packages like cloudinary
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
-# STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
-
-# And in your STORAGES blocks, use the same backend:
+# Modern STORAGES configuration (Django 4.2+)
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
 if USE_CLOUDINARY:
@@ -156,9 +148,9 @@ else:
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
     }
-# Optional leniency (harmless to keep)
-WHITENOISE_MANIFEST_STRICT = False
 
+# Optional leniency for WhiteNoise
+WHITENOISE_MANIFEST_STRICT = False
 
 # --- Passwords ---
 AUTH_PASSWORD_VALIDATORS = [
