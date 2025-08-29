@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import os
 import dj_database_url  # pip install dj-database-url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,7 +119,7 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Static / WhiteNoise ---
 # --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
-import os
+
 static_dir = BASE_DIR / "static"
 print(f"Static dir path: {static_dir}")
 print(f"Static dir exists: {static_dir.exists()}")
