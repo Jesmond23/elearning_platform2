@@ -137,7 +137,7 @@ else:
 # Only add static dir if it exists and has files
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
+# STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
 # And in your STORAGES blocks, use the same backend:
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
@@ -156,7 +156,6 @@ else:
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
     }
-
 # Optional leniency (harmless to keep)
 WHITENOISE_MANIFEST_STRICT = False
 
