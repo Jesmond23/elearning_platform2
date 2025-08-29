@@ -117,9 +117,17 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Static base settings ---
 
 # --- Static / WhiteNoise ---
+# --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Only add static dir if it exists and has files
+static_dir = BASE_DIR / "static"
+if static_dir.exists() and any(static_dir.iterdir()):
+    STATICFILES_DIRS = [static_dir]
+else:
+    STATICFILES_DIRS = []
+
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
 # And in your STORAGES blocks, use the same backend:
