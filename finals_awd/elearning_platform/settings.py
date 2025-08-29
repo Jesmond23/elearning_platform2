@@ -101,24 +101,19 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 # # Static files
-# STATIC_URL = "/static/"
-# STATIC_ROOT = BASE_DIR / "staticfiles"
-# STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
-
-# # Use non-manifest storage to avoid DRF’s missing font references breaking collectstatic
-# STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-
-# # (Keep this too; it’s harmless either way)
-# WHITENOISE_MANIFEST_STRICT = False
-
-# WHITENOISE_MANIFEST_STRICT = False
-# --- Media (Cloudinary in prod, filesystem in dev) ---
-# --- Media (Cloudinary in prod, filesystem in dev) ---
-# --- Static base settings ---
-
-# --- Static / WhiteNoise ---
-# --- Static / WhiteNoise ---
-STATIC_URL = "/static/"
+# Debug static files during deployment
+print(f"DEBUG: BASE_DIR = {BASE_DIR}")
+print(f"DEBUG: STATIC_ROOT = {BASE_DIR / 'staticfiles'}")
+print(f"DEBUG: STATICFILES_DIRS = {[BASE_DIR / 'static']}")
+static_path = BASE_DIR / "static"
+if static_path.exists():
+    print(f"DEBUG: Static directory exists at {static_path}")
+    for root, dirs, files in os.walk(static_path):
+        for file in files:
+            filepath = os.path.join(root, file)
+            print(f"DEBUG: Found static file: {filepath}")
+else:
+    print(f"DEBUG: Static directory does NOT exist at {static_path}")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Configure STATICFILES_DIRS to point to your static directory
