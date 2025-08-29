@@ -119,7 +119,7 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # --- Static / WhiteNoise ---
 # --- Static / WhiteNoise ---
 STATIC_URL = "/static/"
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 static_dir = BASE_DIR / "static"
 print(f"Static dir path: {static_dir}")
 print(f"Static dir exists: {static_dir.exists()}")
