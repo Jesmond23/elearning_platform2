@@ -24,8 +24,8 @@ INSTALLED_APPS = [
     "courses",
     "dashboard",
     "accounts",
-    # "cloudinary",           # Cloudinary (media)
-    # "cloudinary_storage",   # Cloudinary (media)
+    "cloudinary",           # Cloudinary (media)
+    "cloudinary_storage",   # Cloudinary (media)
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -125,14 +125,16 @@ if static_path.exists():
 else:
     print(f"DEBUG: Static directory does NOT exist at {static_path}")
 
+# Legacy setting for backward compatibility with cloudinary package  
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
+
 # Modern STORAGES configuration (Django 4.2+)
-# Removed STATICFILES_STORAGE to avoid conflicts
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
 if USE_CLOUDINARY:
     STORAGES = {
-        "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
+        "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},  # Media only
+        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},  # Static files via WhiteNoise
     }
     MEDIA_URL = "/media/"
     CLOUDINARY_STORAGE = {"RAW_UPLOAD": True}
@@ -141,7 +143,7 @@ else:
     MEDIA_ROOT = BASE_DIR / "media"
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},  # Static files via WhiteNoise
     }
 
 # Optional leniency for WhiteNoise
