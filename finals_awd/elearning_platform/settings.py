@@ -121,12 +121,8 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Check if static directory exists and configure STATICFILES_DIRS
-static_dir = BASE_DIR / "static"
-if static_dir.exists():
-    STATICFILES_DIRS = [static_dir]
-else:
-    STATICFILES_DIRS = []
+# Configure STATICFILES_DIRS to point to your static directory
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Legacy setting for backward compatibility with older packages like cloudinary
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
