@@ -101,10 +101,20 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 # # Static files
+# --- Static / WhiteNoise ---
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Configure STATICFILES_DIRS to point to your static directory
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
 # Debug static files during deployment
 print(f"DEBUG: BASE_DIR = {BASE_DIR}")
-print(f"DEBUG: STATIC_ROOT = {BASE_DIR / 'staticfiles'}")
-print(f"DEBUG: STATICFILES_DIRS = {[BASE_DIR / 'static']}")
+print(f"DEBUG: STATIC_URL = {STATIC_URL}")
+print(f"DEBUG: STATIC_ROOT = {STATIC_ROOT}")
+print(f"DEBUG: STATICFILES_DIRS = {STATICFILES_DIRS}")
+
+import os
 static_path = BASE_DIR / "static"
 if static_path.exists():
     print(f"DEBUG: Static directory exists at {static_path}")
@@ -114,10 +124,6 @@ if static_path.exists():
             print(f"DEBUG: Found static file: {filepath}")
 else:
     print(f"DEBUG: Static directory does NOT exist at {static_path}")
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Configure STATICFILES_DIRS to point to your static directory
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Legacy setting for backward compatibility with older packages like cloudinary
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
