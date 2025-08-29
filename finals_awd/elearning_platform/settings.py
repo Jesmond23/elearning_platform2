@@ -125,10 +125,8 @@ if static_path.exists():
 else:
     print(f"DEBUG: Static directory does NOT exist at {static_path}")
 
-# Legacy setting for backward compatibility with older packages like cloudinary
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
-
 # Modern STORAGES configuration (Django 4.2+)
+# Removed STATICFILES_STORAGE to avoid conflicts
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
 
 if USE_CLOUDINARY:
@@ -148,7 +146,6 @@ else:
 
 # Optional leniency for WhiteNoise
 WHITENOISE_MANIFEST_STRICT = False
-
 # --- Passwords ---
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
