@@ -24,8 +24,8 @@ INSTALLED_APPS = [
     "courses",
     "dashboard",
     "accounts",
-    "cloudinary",           # Cloudinary (media)
-    "cloudinary_storage",   # Cloudinary (media)
+    # "cloudinary",           # Cloudinary (media)
+    # "cloudinary_storage",   # Cloudinary (media)
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
