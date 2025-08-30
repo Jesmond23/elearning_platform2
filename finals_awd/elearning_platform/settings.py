@@ -35,7 +35,7 @@ INSTALLED_APPS = [
 # Add Cloudinary apps only if configured
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
 if USE_CLOUDINARY:
-    INSTALLED_APPS.insert(-7, "cloudinary_storage")  # For static files
+    INSTALLED_APPS.insert(-7, "cloudinary_storage")  # For media files
     INSTALLED_APPS.insert(-7, "cloudinary")  # Core cloudinary
 
 # --- Middleware (Whitenoise right after security) ---
@@ -110,28 +110,20 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Configure static files storage based on environment
+# --- Storage Configuration: Cloudinary for Media, WhiteNoise for Static ---
 if USE_CLOUDINARY:
-    # Import cloudinary for configuration
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary.api
-    
-    # Parse CLOUDINARY_URL for explicit configuration
+    # Parse CLOUDINARY_URL for configuration
     cloudinary_url = os.environ.get("CLOUDINARY_URL")
+    cloud_name = api_key = api_secret = None
+    
     if cloudinary_url:
-        # Extract components from cloudinary://api_key:api_secret@cloud_name
         import urllib.parse
         parsed = urllib.parse.urlparse(cloudinary_url)
-        
-        # Configure Cloudinary explicitly
-        cloudinary.config(
-            cloud_name=parsed.hostname,
-            api_key=parsed.username,
-            api_secret=parsed.password,
-            secure=True  # Always use HTTPS
-        )
+        cloud_name = parsed.hostname
+        api_key = parsed.username
+        api_secret = parsed.password
     
+    # Use Cloudinary for media files, WhiteNoise for static files
     STORAGES = {
         "default": {
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
@@ -141,28 +133,31 @@ if USE_CLOUDINARY:
         },
     }
     
-    # Cloudinary storage settings
+    # Legacy settings for older Django compatibility
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    
+    # Cloudinary settings
     CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": cloudinary.config().cloud_name,
-        "API_KEY": cloudinary.config().api_key,
-        "API_SECRET": cloudinary.config().api_secret,
+        "CLOUD_NAME": cloud_name,
+        "API_KEY": api_key,  
+        "API_SECRET": api_secret,
         "SECURE": True,
-        "MEDIA_TAG": "media",  # Tag all media uploads
-        "INVALID_VIDEO_ERROR_MESSAGE": "Please upload a valid video file.",
-        "EXCLUDE_DELETE_ORPHANED_MEDIA_PATHS": (),
-        "STATICFILES_MANIFEST_ROOT": os.path.join(BASE_DIR, 'staticfiles'),
-        "MAGIC_FILE_PATH": "uploads/",  # Organize uploads in a folder
     }
     
-    # Don't set MEDIA_URL when using Cloudinary - it handles URLs automatically
 else:
+    # Local storage for both static and media
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
         },
     }
-    # Only set MEDIA_URL and MEDIA_ROOT when NOT using Cloudinary
+    
+    # Legacy settings
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
@@ -179,11 +174,13 @@ if DEBUG:
     print(f"DEBUG: USE_CLOUDINARY = {USE_CLOUDINARY}")
     
     if USE_CLOUDINARY:
-        print(f"DEBUG: Cloudinary cloud_name = {cloudinary.config().cloud_name}")
-        print(f"DEBUG: Cloudinary configured = {bool(cloudinary.config().cloud_name)}")
+        print(f"DEBUG: Cloudinary cloud_name = {cloud_name}")
+        print(f"DEBUG: Cloudinary configured = {bool(cloud_name)}")
+        print("DEBUG: Using Cloudinary for media files, WhiteNoise for static files")
     else:
         print(f"DEBUG: MEDIA_URL = {MEDIA_URL}")
         print(f"DEBUG: MEDIA_ROOT = {MEDIA_ROOT}")
+        print("DEBUG: Using local storage for both static and media files")
     
     static_path = BASE_DIR / "static"
     if static_path.exists():
