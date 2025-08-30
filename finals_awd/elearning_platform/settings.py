@@ -35,8 +35,8 @@ INSTALLED_APPS = [
 # Add Cloudinary apps only if configured
 USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
 if USE_CLOUDINARY:
-    INSTALLED_APPS.insert(-7, "cloudinary_storage")  # For media files
-    INSTALLED_APPS.insert(-7, "cloudinary")  # Core cloudinary
+    INSTALLED_APPS.insert(-7, "cloudinary")  # Before django apps
+    INSTALLED_APPS.insert(-7, "cloudinary_storage")
 
 # --- Middleware (Whitenoise right after security) ---
 MIDDLEWARE = [
@@ -110,55 +110,26 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# --- Storage Configuration: Cloudinary for Media, WhiteNoise for Static ---
+# Configure static files storage based on environment
 if USE_CLOUDINARY:
-    # Parse CLOUDINARY_URL for configuration
-    cloudinary_url = os.environ.get("CLOUDINARY_URL")
-    cloud_name = api_key = api_secret = None
-    
-    if cloudinary_url:
-        import urllib.parse
-        parsed = urllib.parse.urlparse(cloudinary_url)
-        cloud_name = parsed.hostname
-        api_key = parsed.username
-        api_secret = parsed.password
-    
-    # Use Cloudinary for media files, WhiteNoise for static files
     STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
+        "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
         },
     }
-    
-    # Legacy settings for older Django compatibility
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    
-    # Cloudinary settings
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": cloud_name,
-        "API_KEY": api_key,  
-        "API_SECRET": api_secret,
-        "SECURE": True,
-    }
-    
+    CLOUDINARY_STORAGE = {"RAW_UPLOAD": True}
 else:
-    # Local storage for both static and media
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
         },
     }
-    
-    # Legacy settings
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    
-    MEDIA_URL = "/media/"
+
+# --- Media Files Configuration ---
+MEDIA_URL = "/media/"
+if not USE_CLOUDINARY:
     MEDIA_ROOT = BASE_DIR / "media"
 
 # WhiteNoise configuration
@@ -172,15 +143,6 @@ if DEBUG:
     print(f"DEBUG: STATIC_ROOT = {STATIC_ROOT}")
     print(f"DEBUG: STATICFILES_DIRS = {STATICFILES_DIRS}")
     print(f"DEBUG: USE_CLOUDINARY = {USE_CLOUDINARY}")
-    
-    if USE_CLOUDINARY:
-        print(f"DEBUG: Cloudinary cloud_name = {cloud_name}")
-        print(f"DEBUG: Cloudinary configured = {bool(cloud_name)}")
-        print("DEBUG: Using Cloudinary for media files, WhiteNoise for static files")
-    else:
-        print(f"DEBUG: MEDIA_URL = {MEDIA_URL}")
-        print(f"DEBUG: MEDIA_ROOT = {MEDIA_ROOT}")
-        print("DEBUG: Using local storage for both static and media files")
     
     static_path = BASE_DIR / "static"
     if static_path.exists():
