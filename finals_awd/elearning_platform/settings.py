@@ -24,8 +24,6 @@ INSTALLED_APPS = [
     "courses",
     "dashboard",
     "accounts",
-    # "cloudinary",           # Cloudinary (media)
-    # "cloudinary_storage",   # Cloudinary (media)
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -33,6 +31,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
+
+# Add Cloudinary apps only if configured
+USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
+if USE_CLOUDINARY:
+    INSTALLED_APPS.insert(-7, "cloudinary_storage")  # For static files
+    INSTALLED_APPS.insert(-7, "cloudinary")  # Core cloudinary
 
 # --- Middleware (Whitenoise right after security) ---
 MIDDLEWARE = [
@@ -100,52 +104,97 @@ SPECTACULAR_SETTINGS = {
 AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
-# # Static files
-# --- Static / WhiteNoise ---
+
+# --- Static Files Configuration ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Configure STATICFILES_DIRS to point to your static directory
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Debug static files during deployment
-print(f"DEBUG: BASE_DIR = {BASE_DIR}")
-print(f"DEBUG: STATIC_URL = {STATIC_URL}")
-print(f"DEBUG: STATIC_ROOT = {STATIC_ROOT}")
-print(f"DEBUG: STATICFILES_DIRS = {STATICFILES_DIRS}")
-
-import os
-static_path = BASE_DIR / "static"
-if static_path.exists():
-    print(f"DEBUG: Static directory exists at {static_path}")
-    for root, dirs, files in os.walk(static_path):
-        for file in files:
-            filepath = os.path.join(root, file)
-            print(f"DEBUG: Found static file: {filepath}")
-else:
-    print(f"DEBUG: Static directory does NOT exist at {static_path}")
-
-# Modern STORAGES configuration (Django 4.2+)
-# Removed STATICFILES_STORAGE to avoid conflicts
-USE_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL")) and not DEBUG
-
+# Configure static files storage based on environment
 if USE_CLOUDINARY:
+    # Import cloudinary for configuration
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    
+    # Parse CLOUDINARY_URL for explicit configuration
+    cloudinary_url = os.environ.get("CLOUDINARY_URL")
+    if cloudinary_url:
+        # Extract components from cloudinary://api_key:api_secret@cloud_name
+        import urllib.parse
+        parsed = urllib.parse.urlparse(cloudinary_url)
+        
+        # Configure Cloudinary explicitly
+        cloudinary.config(
+            cloud_name=parsed.hostname,
+            api_key=parsed.username,
+            api_secret=parsed.password,
+            secure=True  # Always use HTTPS
+        )
+    
     STORAGES = {
-        "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
     }
-    MEDIA_URL = "/media/"
-    CLOUDINARY_STORAGE = {"RAW_UPLOAD": True}
+    
+    # Cloudinary storage settings
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": cloudinary.config().cloud_name,
+        "API_KEY": cloudinary.config().api_key,
+        "API_SECRET": cloudinary.config().api_secret,
+        "SECURE": True,
+        "MEDIA_TAG": "media",  # Tag all media uploads
+        "INVALID_VIDEO_ERROR_MESSAGE": "Please upload a valid video file.",
+        "EXCLUDE_DELETE_ORPHANED_MEDIA_PATHS": (),
+        "STATICFILES_MANIFEST_ROOT": os.path.join(BASE_DIR, 'staticfiles'),
+        "MAGIC_FILE_PATH": "uploads/",  # Organize uploads in a folder
+    }
+    
+    # Don't set MEDIA_URL when using Cloudinary - it handles URLs automatically
 else:
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = BASE_DIR / "media"
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.StaticFilesStorage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        },
     }
+    # Only set MEDIA_URL and MEDIA_ROOT when NOT using Cloudinary
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
 
-# Optional leniency for WhiteNoise
+# WhiteNoise configuration
 WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_USE_FINDERS = True  # Helps during development
+
+# --- Debug prints (remove in production) ---
+if DEBUG:
+    print(f"DEBUG: BASE_DIR = {BASE_DIR}")
+    print(f"DEBUG: STATIC_URL = {STATIC_URL}")
+    print(f"DEBUG: STATIC_ROOT = {STATIC_ROOT}")
+    print(f"DEBUG: STATICFILES_DIRS = {STATICFILES_DIRS}")
+    print(f"DEBUG: USE_CLOUDINARY = {USE_CLOUDINARY}")
+    
+    if USE_CLOUDINARY:
+        print(f"DEBUG: Cloudinary cloud_name = {cloudinary.config().cloud_name}")
+        print(f"DEBUG: Cloudinary configured = {bool(cloudinary.config().cloud_name)}")
+    else:
+        print(f"DEBUG: MEDIA_URL = {MEDIA_URL}")
+        print(f"DEBUG: MEDIA_ROOT = {MEDIA_ROOT}")
+    
+    static_path = BASE_DIR / "static"
+    if static_path.exists():
+        print(f"DEBUG: Static directory exists at {static_path}")
+        for root, dirs, files in os.walk(static_path):
+            for file in files:
+                filepath = os.path.join(root, file)
+                print(f"DEBUG: Found static file: {filepath}")
+    else:
+        print(f"DEBUG: Static directory does NOT exist at {static_path}")
+
 # --- Passwords ---
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -172,10 +221,10 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# --- Security for Render’s proxy ---
+# --- Security for Render's proxy ---
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # --- Defaults ---
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
